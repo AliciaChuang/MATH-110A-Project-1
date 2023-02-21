@@ -1,0 +1,8 @@
+MATH 110A Project 1
+Implementing Steepest Gradient Descent
+
+#Steepest Gradient Descent
+
+#Secant Method
+
+#Output and Analysis
