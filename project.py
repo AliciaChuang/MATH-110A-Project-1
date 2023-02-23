@@ -63,11 +63,11 @@ def g_prime(alpha):
     return output
 
 def f(x):
-    output = x
+    output = (1-x[0])^2+100(x[1]-x[0]^2)^2
     return output
 
 def grad(x):
-    output = 1
+    output = [-2(1-x[0])-400*x[0](x[1]-x[0]^2), 200(x[1]-x[0]^2)]
     return output
 
-print(grad_desc(0, grad, 100, 1e-6, f, g_prime, 0, 0.001))
+print(grad_desc([0,0], grad, 100, 1e-6, f, g_prime, 0, 0.001))
