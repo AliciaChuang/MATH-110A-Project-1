@@ -29,7 +29,8 @@ and determine the number of iterations required to satisfy the stopping criterio
 Evaluate the objective function at the final point to see how close it is to 0.
 """
 
-
+#import
+import numpy as np
 
 ##Implementation of the line search algorithm using the secant method
 #arguments: initial step sizes (a0, a1), function (g_prime)
@@ -58,16 +59,24 @@ def grad_desc(x0, grad, max_iter, tol, f, g_prime, a0, a1):
     
     return A[k]
 
-def g_prime(alpha):
-    output = alpha
+
+
+#Rosenbrock's function
+def g_prime(alpha, x, grad, hessian):
+    output = (grad(x))**2 * hessian(x - alpha*grad(x))
     return output
 
 def f(x):
-    output = x
+    output = 100 * (x[1] - x[0]**2)**2 + (1 - x[0])**2
     return output
 
 def grad(x):
-    output = 1
+    output = np.array(400*x[0]**3 - 400*x[0]*x[1] + 2*x[0] - 2, 200*(x[1] - x[0]**2))
+    return output
+
+def hessian(x):
+    output = np.array([[1200*x[0]**2 - 400*x[1] + 2, -400*x[0]], -400*x[0], 200])
     return output
 
 print(grad_desc(0, grad, 100, 1e-6, f, g_prime, 0, 0.001))
+
