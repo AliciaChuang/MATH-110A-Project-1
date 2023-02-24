@@ -49,15 +49,23 @@ def linesearch_secant(a0, a1, g_prime, grad, hessian, x):
     return alpha
 """
 def linesearch_secant(a0, a1, g_prime, grad, hessian, x):
-    max_iter = 10
+    max_iter = 1000
     alpha = [0] * max_iter
     alpha[0] = a0
     alpha[1] = a1
     for k in range(1, max_iter - 1):
-        alpha[k+1] = alpha[k] - (alpha[k] - alpha[k-1])/(g_prime(alpha[k], x, grad) - g_prime(alpha[k-1], x, grad)) * g_prime(alpha[k], x, grad)
+        if abs(alpha[k] - alpha[k-1]) > 1e-5 and abs(g_prime(alpha[k], x, grad)) > 1e-5:
+            alpha[k+1] = alpha[k] - g_prime(alpha[k], x, grad)*(alpha[k] - alpha[k-1])/(g_prime(alpha[k], x, grad) - g_prime(alpha[k-1], x, grad))
+            #print(alpha[k+1])
+        else:
+            print("Current alpha: ")
+            print(alpha[k])
+            print(g_prime(alpha[k], x, grad))
+            return alpha[k]
 
-    print("Current alpha: ")
-    print(alpha[max_iter-1])
+    #print("Current alpha: ")
+    #print(alpha[max_iter-1])
+    #print(g_prime(alpha[max_iter-1], x, grad))
     return alpha[max_iter-1]
 
 
@@ -76,6 +84,7 @@ def grad_desc(x, grad, hessian, max_iter, tol, f, g_prime, a0, a1):
         print(A[k])
         k += 1
     
+   
     return A[k-1]
 
 
@@ -89,7 +98,7 @@ def g_prime(alpha, x, grad, hessian):
 """
 
 def g_prime(alpha, x, grad):
-    output = -grad(x)*grad(x-alpha*grad(x))
+    output = np.dot(-grad(x),grad(x-alpha*grad(x)))
     return output
 
 
@@ -99,12 +108,15 @@ def f(x):
 
 def grad(x):
     output = np.array([400*x[0]**3 - 400*x[0]*x[1] + 2*x[0] - 2, 200*(x[1] - x[0]**2)])
-    return float(sum(output))
+    return output
 
 def hessian(x):
     output = np.array([[1200*x[0]**2 - 400*x[1] + 2, -400*x[0]], [-400*x[0], 200]], dtype=object)
     return output
 
-print(grad_desc(np.array([2, 2]), grad, hessian, 5, 1e-9, f, g_prime, 0.01, 0.011))
 
-#print(grad_desc(np.array([-3, 5]), grad, hessian, 100, 1e-9, f, g_prime, 1, 1.1))
+print(grad_desc(np.array([2, 2]), grad, hessian, 10, 1e-16, f, g_prime, 0.001, 0.0009))
+
+#print(grad_desc(np.array([2, 2]), grad, hessian, 100, 1e-9, f, g_prime, 0.01, 0.011))
+
+#alpha = linesearch_secant(0.001, 0.0009, g_prime, grad, hessian, np.array([2, 2]))
