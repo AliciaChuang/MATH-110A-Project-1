@@ -48,36 +48,42 @@ def linesearch_secant(a0, a1, g_prime, grad, hessian, x):
     print(alpha)
     return alpha
 """
-def linesearch_secant(a0, a1, g_prime, grad, hessian, x):
+def linesearch_secant(a0, a1, g_prime, x):
     max_iter = 1000
     alpha = [0] * max_iter
     alpha[0] = a0
     alpha[1] = a1
     for k in range(1, max_iter - 1):
-        if abs(alpha[k] - alpha[k-1]) > 1e-5 and abs(g_prime(alpha[k], x, grad)) > 1e-5:
-            alpha[k+1] = alpha[k] - g_prime(alpha[k], x, grad)*(alpha[k] - alpha[k-1])/(g_prime(alpha[k], x, grad) - g_prime(alpha[k-1], x, grad))
-            #print(alpha[k+1])
+        print("entered for loop")
+
+        if abs(alpha[k] - alpha[k-1]) > 1e-5 and abs((g_prime(alpha[k], x))) > 1e-5:
+            print("conditional passed")
+            alpha[k+1] = alpha[k] - ((g_prime(alpha[k], x)*(alpha[k] - alpha[k-1]))/(g_prime(alpha[k], x) - g_prime(alpha[k-1], x)))
+            print("step size:")
+            print(((g_prime(alpha[k], x)*(alpha[k] - alpha[k-1]))/(g_prime(alpha[k], x) - g_prime(alpha[k-1], x))))
         else:
             print("Current alpha: ")
             print(alpha[k])
-            print(g_prime(alpha[k], x, grad))
             return alpha[k]
 
-    #print("Current alpha: ")
-    #print(alpha[max_iter-1])
-    #print(g_prime(alpha[max_iter-1], x, grad))
     return alpha[max_iter-1]
 
+"""
+Testing of the linesearch_secant function
+f = lambda alpha, x: alpha**2 - 20
+linesearch_secant(2, 8, f, np.array([1, 1]))
+"""
+ 
 
 ##Implementation of the steepest descent algorithm using the secant method
 #arguments: initial search point (x), function gradient (grad), maximum iterations (max_iter), 
 # tolerance (tol), function (f), function for line search (g_prime), initial step sizes (a0, a1)
-def grad_desc(x, grad, hessian, max_iter, tol, f, g_prime, a0, a1):
+def grad_desc(x, grad, max_iter, tol, f, g_prime, a0, a1):
     A = [[0, 0]] * max_iter
     A[0] = x
     k = 1
     while abs(f(A[k-1])) > tol and k < max_iter:
-        alpha = linesearch_secant(a0, a1, g_prime, grad, hessian, x)
+        alpha = linesearch_secant(a0, a1, g_prime, x)
         A[k] = A[k-1] - alpha * grad(A[k-1])
         x = np.array(A[k])
         print("Iteration: " + str(k))
@@ -91,14 +97,10 @@ def grad_desc(x, grad, hessian, max_iter, tol, f, g_prime, a0, a1):
 
 #Rosenbrock's function
 
-"""
-def g_prime(alpha, x, grad, hessian):
-    output = (grad(x))**2 * hessian(x - alpha*grad(x))
-    return output
-"""
-
-def g_prime(alpha, x, grad):
+def g_prime(alpha, x):
     output = np.dot(-grad(x),grad(x-alpha*grad(x)))
+    print("g prime")
+    print(alpha*grad(x))
     return output
 
 
@@ -110,13 +112,9 @@ def grad(x):
     output = np.array([400*x[0]**3 - 400*x[0]*x[1] + 2*x[0] - 2, 200*(x[1] - x[0]**2)])
     return output
 
-def hessian(x):
-    output = np.array([[1200*x[0]**2 - 400*x[1] + 2, -400*x[0]], [-400*x[0], 200]], dtype=object)
-    return output
 
+#print(grad_desc(np.array([2, 2]), grad, 2, 1e-16, f, g_prime, 0.002, 0.0019))
 
-print(grad_desc(np.array([2, 2]), grad, hessian, 10, 1e-16, f, g_prime, 0.001, 0.0009))
+#print(grad_desc(np.array([2, 2]), grad, 100, 1e-9, f, g_prime, 0.01, 0.011))
 
-#print(grad_desc(np.array([2, 2]), grad, hessian, 100, 1e-9, f, g_prime, 0.01, 0.011))
-
-#alpha = linesearch_secant(0.001, 0.0009, g_prime, grad, hessian, np.array([2, 2]))
+#alpha = linesearch_secant(0.001, 0.0009, g_prime, grad, np.array([2, 2]))
