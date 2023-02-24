@@ -46,11 +46,10 @@ def linesearch_secant(a0, a1, g_prime, x):
         #checking if we have reached convergence
         if abs(alpha[k] - alpha[k-1]) > 1e-5:
             #secant method formula for updating minimizer
+            #want to drive g_prime to 0 in order to minimize g
             alpha[k+1] = alpha[k] - ((g_prime(alpha[k], x)*(alpha[k] - alpha[k-1]))/(g_prime(alpha[k], x) - g_prime(alpha[k-1], x)))
         #if convergence is reached, return the minimizer
         else:
-            print(alpha[k])
-            print(k)
             return alpha[k]
 
     #return the minimizer if maximum iteration reached without convergence
@@ -70,16 +69,19 @@ print("function result: " + str(minimizer))
 #arguments: initial search point (x), function gradient (grad), maximum iterations (max_iter), 
 # tolerance (tol), function (f), function for line search (g_prime), initial step sizes (a0, a1)
 def grad_desc(x, grad, max_iter, tol, f, g_prime, a0, a1):
-    A = [[0, 0]] * max_iter
-    A[0] = x
+    A = [[0, 0]] * max_iter #initialize the matrix of minimizer values
+    A[0] = x 
     k = 1
+    #repeat the gradient descent process until convergence of maximum iterations reached
     while abs(f(A[k-1])) > tol and k < max_iter:
+        #call the linesearch_secant function of obtain the optimal step size
         alpha = linesearch_secant(a0, a1, g_prime, A[k-1])
+        #update the minimizer with the step size in the direction of steepest descent
         A[k] = A[k-1] - alpha * grad(A[k-1])
-        x = np.array(A[k])
-        print("Iteration: " + str(k))
         print(A[k])
-        print(x)
+        #update x with the last guessed minimizer value
+        x = np.array(A[k])
+        #update k to go to the next iteration
         k += 1
     
    
@@ -102,7 +104,7 @@ def grad(x):
     return output
 
 
-#print(grad_desc(np.array([1.5, 2]), grad, 100, 1e-9, f, g_prime, 0.01, 0.011))
+print(grad_desc(np.array([1.5, 2]), grad, 10000, 1e-9, f, g_prime, 0.01, 0.011))
 
 
 #Paraboloid
@@ -114,4 +116,4 @@ def grad1(x):
     return(np.array([2*x[0], 2*x[1]]))
 
 
-#print(grad_desc(np.array([10, 12]), grad1, 1000, 1e-9, f1, g_prime, 1, 1.5))
+print(grad_desc(np.array([10, 12]), grad1, 10000, 1e-9, f1, g_prime, 1, 1.5))
