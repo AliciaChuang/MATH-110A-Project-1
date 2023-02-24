@@ -29,23 +29,31 @@ and determine the number of iterations required to satisfy the stopping criterio
 Evaluate the objective function at the final point to see how close it is to 0.
 """
 
-#import
+#import numpy so we can work with matrices
 import numpy as np
 
-##Implementation of the line search algorithm using the secant method
-#arguments: initial step sizes (a0, a1), function (g_prime)
 
+##Implementation of the line search algorithm using the secant method
+#arguments: initial step sizes (a0, a1), function (g_prime), and the current guess for the linesearch_secant function (x)
 def linesearch_secant(a0, a1, g_prime, x):
-    max_iter = 1000
-    alpha = [0] * max_iter
-    alpha[0] = a0
+    max_iter = 1000 #setting the maximum iteration, so we don't run into infinite recursion
+    alpha = [0] * max_iter #initializing the list of alphas
+    alpha[0] = a0 
     alpha[1] = a1
+
+    #recur and update minimizer alpha max_iter times 
     for k in range(1, max_iter - 1):
+        #checking if we have reached convergence
         if abs(alpha[k] - alpha[k-1]) > 1e-5:
+            #secant method formula for updating minimizer
             alpha[k+1] = alpha[k] - ((g_prime(alpha[k], x)*(alpha[k] - alpha[k-1]))/(g_prime(alpha[k], x) - g_prime(alpha[k-1], x)))
+        #if convergence is reached, return the minimizer
         else:
+            print(alpha[k])
+            print(k)
             return alpha[k]
 
+    #return the minimizer if maximum iteration reached without convergence
     return alpha[max_iter-1]
 
 
@@ -94,7 +102,7 @@ def grad(x):
     return output
 
 
-print(grad_desc(np.array([1.5, 2]), grad, 1000, 1e-9, f, g_prime, 0.01, 0.011))
+#print(grad_desc(np.array([1.5, 2]), grad, 100, 1e-9, f, g_prime, 0.01, 0.011))
 
 
 #Paraboloid
@@ -106,4 +114,4 @@ def grad1(x):
     return(np.array([2*x[0], 2*x[1]]))
 
 
-print(grad_desc(np.array([10, 12]), grad1, 10000, 1e-9, f1, g_prime, 1, 1.5))
+#print(grad_desc(np.array([10, 12]), grad1, 1000, 1e-9, f1, g_prime, 1, 1.5))
