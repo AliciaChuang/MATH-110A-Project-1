@@ -1,5 +1,3 @@
-
-
 #7.11
 """
 Line search algorithm using the secant method 
@@ -14,7 +12,6 @@ where ε > 0 is a prespecified number,
 ∇f is the gradient, 
 x is the starting line search point, 
 and d is the search direction
-
 “Note: In the solutions manual, we used the stopping criterion |d ∇f(x + αd)| ≥ ε|d ∇f(x)|, 
 We used a value of ε = 10−4 and initial conditions of 0 and 0.001.”
 """
@@ -29,65 +26,110 @@ and determine the number of iterations required to satisfy the stopping criterio
 Evaluate the objective function at the final point to see how close it is to 0.
 """
 
-#import
+#import numpy so we can work with matrices
 import numpy as np
 
+
 ##Implementation of the line search algorithm using the secant method
-#arguments: initial step sizes (a0, a1), function (g_prime)
-def linesearch_secant(a0, a1, g_prime):
-    max_iter = 1000
-    alpha = [0] * max_iter
-    alpha[0] = a0
+#parameters: initial step sizes (a0, a1), function (g_prime), and the current guess for the linesearch_secant function (x)
+def linesearch_secant(a0, a1, g_prime, x):
+    max_iter = 1000 #setting the maximum iteration, so we don't run into infinite recursion
+    alpha = [0] * max_iter #initializing the list of alphas
+    alpha[0] = a0 
     alpha[1] = a1
-    for k in range(1, max_iter):
-        alpha[k+1] = alpha[k] - (g_prime(alpha[k])) / ((alpha[k] - alpha[k-1]) / g_prime(alpha[k]) - g_prime(alpha[k-1]))
 
-    return alpha
+    #recur and update minimizer alpha max_iter times 
+    for k in range(1, max_iter - 1):
+        #checking if we have reached convergence
+        if abs(alpha[k] - alpha[k-1]) > 1e-5:
+            #secant method formula for updating minimizer
+            #want to drive g_prime to 0 in order to minimize g
+            alpha[k+1] = alpha[k] - ((g_prime(alpha[k], x)*(alpha[k] - alpha[k-1]))/(g_prime(alpha[k], x) - g_prime(alpha[k-1], x)))
+        #if convergence is reached, return the minimizer
+        else:
+            return alpha[k]
 
+    #return the minimizer if maximum iteration reached without convergence
+    return alpha[max_iter-1]
+
+
+##Testing of the linesearch_secant function
+print("Testing of the linesearch_secant function:")
+f = lambda alpha, x: alpha**2 - 20
+minimizer = linesearch_secant(2, 8, f, np.array([1, 1]))
+print("expected value: " + str(4.4721359553))
+print("function result: " + str(minimizer))
+
+ 
 
 ##Implementation of the steepest descent algorithm using the secant method
-#arguments: initial search point (x), function gradient (grad), maximum iterations (max_iter), 
+#parameters: initial search point (x), function gradient (grad), maximum iterations (max_iter), 
 # tolerance (tol), function (f), function for line search (g_prime), initial step sizes (a0, a1)
-def grad_desc(x0, grad, max_iter, tol, f, g_prime, a0, a1):
-    A = [0] * max_iter
-    A[0] = x0
+def grad_desc(x, grad, max_iter, tol, f, g_prime, a0, a1):
+    A = [[0, 0]] * max_iter #initialize the matrix of minimizer values
+    A[0] = x 
     k = 1
-    while abs(f(A[k])) > tol and k < max_iter:
-        alpha = linesearch_secant(a0, a1, g_prime)
+    #repeat the gradient descent process until convergence of maximum iterations reached
+    while abs(f(A[k-1])) > tol and k < max_iter:
+        #call the linesearch_secant function of obtain the optimal step size
+        alpha = linesearch_secant(a0, a1, g_prime, A[k-1])
+        #update the minimizer with the step size in the direction of steepest descent
         A[k] = A[k-1] - alpha * grad(A[k-1])
+        #printing out intermediate results
+        if k % 20 == 0:
+            print(A[k]) 
+        #update x with the last guessed minimizer value
+        x = np.array(A[k])
+        #update k to go to the next iteration
         k += 1
-    
-    return A[k]
+
+    print("steps to convergence: " + str(k-1))
+    return A[k-1]
+
 
 
 
 #Rosenbrock's function
-def g_prime(alpha, x, grad, hessian):
-    output = (grad(x))**2 * hessian(x - alpha*grad(x))
+#derivative of g, function to minimize, used for secant method
+def g_prime0(alpha, x):
+    output = np.dot(-grad0(x),grad0(x-(alpha*grad0(x))))
     return output
 
-def f(x):
-<<<<<<< HEAD
-    output = (1-x[0])^2+100(x[1]-x[0]^2)^2
-    return output
-
-def grad(x):
-    output = [-2(1-x[0])-400*x[0](x[1]-x[0]^2), 200(x[1]-x[0]^2)]
-    return output
-
-print(grad_desc([0,0], grad, 100, 1e-6, f, g_prime, 0, 0.001))
-=======
+#rosenbrock's function's function definition 
+def f0(x):
     output = 100 * (x[1] - x[0]**2)**2 + (1 - x[0])**2
     return output
 
-def grad(x):
-    output = np.array(400*x[0]**3 - 400*x[0]*x[1] + 2*x[0] - 2, 200*(x[1] - x[0]**2))
+#gradient of rosenbrock's function
+def grad0(x):
+    output = np.array([400*x[0]**3 - 400*x[0]*x[1] + 2*x[0] - 2, 200*(x[1] - x[0]**2)])
     return output
 
-def hessian(x):
-    output = np.array([[1200*x[0]**2 - 400*x[1] + 2, -400*x[0]], -400*x[0], 200])
+
+print("\nRosenbrock's function:")
+minimizer_rf = grad_desc(np.array([1.5, 2]), grad0, 10000, 1e-9, f0, g_prime0, 0.01, 0.011)
+print("expected value: " + str([1,1]))
+print("function result: " + str(minimizer_rf))
+
+
+
+
+#Paraboloid
+import math
+def g_prime1(alpha, x):
+    output = np.dot(-grad1(x),grad1(x-(alpha*grad1(x))))
     return output
 
-print(grad_desc(0, grad, 100, 1e-6, f, g_prime, 0, 0.001))
+#paraboloid's function definition
+def f1(x):
+    return x[0]**2 + x[1]**2
 
->>>>>>> de7f2e1 (rosenbrock's set up)
+#gradient of paraboloid function
+def grad1(x):
+    return(np.array([2*x[0], 2*x[1]]))
+
+
+print("\nParaboloid function:")
+minimizer_p = grad_desc(np.array([10, 12]), grad1, 10000, 1e-9, f1, g_prime1, 1, 1.5)
+print("expected value: " + str([0,0]))
+print("function result: " + str(minimizer_p))
