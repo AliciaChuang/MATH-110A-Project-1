@@ -34,7 +34,7 @@ import numpy as np
 
 
 ##Implementation of the line search algorithm using the secant method
-#arguments: initial step sizes (a0, a1), function (g_prime), and the current guess for the linesearch_secant function (x)
+#parameters: initial step sizes (a0, a1), function (g_prime), and the current guess for the linesearch_secant function (x)
 def linesearch_secant(a0, a1, g_prime, x):
     max_iter = 1000 #setting the maximum iteration, so we don't run into infinite recursion
     alpha = [0] * max_iter #initializing the list of alphas
@@ -66,7 +66,7 @@ print("function result: " + str(minimizer))
  
 
 ##Implementation of the steepest descent algorithm using the secant method
-#arguments: initial search point (x), function gradient (grad), maximum iterations (max_iter), 
+#parameters: initial search point (x), function gradient (grad), maximum iterations (max_iter), 
 # tolerance (tol), function (f), function for line search (g_prime), initial step sizes (a0, a1)
 def grad_desc(x, grad, max_iter, tol, f, g_prime, a0, a1):
     A = [[0, 0]] * max_iter #initialize the matrix of minimizer values
@@ -78,42 +78,61 @@ def grad_desc(x, grad, max_iter, tol, f, g_prime, a0, a1):
         alpha = linesearch_secant(a0, a1, g_prime, A[k-1])
         #update the minimizer with the step size in the direction of steepest descent
         A[k] = A[k-1] - alpha * grad(A[k-1])
-        print(A[k])
+        #printing out intermediate results
+        if k % 20 == 0:
+            print(A[k]) 
         #update x with the last guessed minimizer value
         x = np.array(A[k])
         #update k to go to the next iteration
         k += 1
-    
-   
+
+    print("steps to convergence: " + str(k-1))
     return A[k-1]
 
 
 
+
 #Rosenbrock's function
-def g_prime(alpha, x):
-    output = np.dot(-grad(x),grad(x-(alpha*grad(x))))
+#derivative of g, function to minimize, used for secant method
+def g_prime0(alpha, x):
+    output = np.dot(-grad0(x),grad0(x-(alpha*grad0(x))))
     return output
 
-
-def f(x):
+#rosenbrock's function's function definition 
+def f0(x):
     output = 100 * (x[1] - x[0]**2)**2 + (1 - x[0])**2
     return output
 
-def grad(x):
+#gradient of rosenbrock's function
+def grad0(x):
     output = np.array([400*x[0]**3 - 400*x[0]*x[1] + 2*x[0] - 2, 200*(x[1] - x[0]**2)])
     return output
 
 
-print(grad_desc(np.array([1.5, 2]), grad, 10000, 1e-9, f, g_prime, 0.01, 0.011))
+print("\nRosenbrock's function:")
+minimizer_rf = grad_desc(np.array([1.5, 2]), grad0, 10000, 1e-9, f0, g_prime0, 0.01, 0.011)
+print("expected value: " + str([1,1]))
+print("function result: " + str(minimizer_rf))
+
+
 
 
 #Paraboloid
 import math
+def g_prime1(alpha, x):
+    output = np.dot(-grad1(x),grad1(x-(alpha*grad1(x))))
+    return output
+
+#paraboloid's function definition
 def f1(x):
     return x[0]**2 + x[1]**2
 
+#gradient of paraboloid function
 def grad1(x):
     return(np.array([2*x[0], 2*x[1]]))
 
 
-print(grad_desc(np.array([10, 12]), grad1, 10000, 1e-9, f1, g_prime, 1, 1.5))
+print("\nParaboloid function:")
+minimizer_p = grad_desc(np.array([10, 12]), grad1, 10000, 1e-9, f1, g_prime1, 1, 1.5)
+print("expected value: " + str([0,0]))
+print("function result: " + str(minimizer_p))
